@@ -1,0 +1,20 @@
+# Entorno virtual
+entornoprueba/
+.venv/
+
+# Archivos de Python
+*.pyc
+__pycache__/
+
+# Archivos de configuración de entorno
+.env
+
+# Logs
+*.log
+
+# Sistema operativo
+.DS_Store
+
+# IDEs y editores
+.vscode/
+.idea/
