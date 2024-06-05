@@ -21,7 +21,15 @@ def get_db_connection():
 
 st.set_page_config(page_title='Austral Pool', page_icon='logoCarPool.jpg', layout="centered", initial_sidebar_state="auto", menu_items=None)
 
-st.title('PoolAustral')
+# CSS para centrar el título usando HTML en st.markdown
+st.markdown("""
+    <style>
+    h1 {
+        text-align: center;
+    }
+    </style>
+    <h1>PoolAustral</h1><br>
+""", unsafe_allow_html=True)
 
 # Cargar la imagen
 image = Image.open('Imagenderecha.jpg')
@@ -57,6 +65,19 @@ verdana-text  {
 col1, col2, col3 = st.columns(3)
 
 with col1:
+    # CSS para cambiar el color de los botones
+    st.markdown("""
+        <style>
+        div.stButton > button:first-child {
+            background-color: white;  # Color blanco para el primer botón
+            color: black;
+        }
+        div.stButton > button:nth-child(2) {
+            background-color: #4CAF50;  # Color verde para el segundo botón
+            color: white;
+        }
+        </style>""", unsafe_allow_html=True)
+
     if st.button("Crear usuario"):
         st.switch_page("pages/1Registrar Usuario.py")
 
