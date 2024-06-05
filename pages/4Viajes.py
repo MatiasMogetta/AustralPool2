@@ -96,7 +96,7 @@ def cargar_viajes_futuros(idUser):
     try:
         with conn.cursor() as cur:
             query = """
-            SELECT v.idConductor, v.fechaViaje, v.sentido, v.dia_semana, c.nombre_apellido AS conductor
+            SELECT v.idConductor AS DNI, v.fechaViaje, v.sentido, v.dia_semana, c.nombre_apellido AS conductor, c.email AS email, c.telefono_celular AS celular
             FROM AustralPool.Viajes v
             JOIN AustralPool.Usuarios c ON v.idConductor = c.idUser
             WHERE v.idPasajero = %s AND v.fechaViaje >= CURRENT_DATE
@@ -117,7 +117,7 @@ def cargar_viajes_pasados(idUser):
     try:
         with conn.cursor() as cur:
             query = """
-            SELECT v.idConductor, v.fechaViaje, v.sentido, v.dia_semana, c.nombre_apellido AS conductor
+            SELECT v.idConductor AS DNI, v.fechaViaje, v.sentido, v.dia_semana, c.nombre_apellido AS conductor, c.email AS email, c.telefono_celular AS celular
             FROM AustralPool.Viajes v
             JOIN AustralPool.Usuarios c ON v.idConductor = c.idUser
             WHERE v.idPasajero = %s AND v.fechaViaje < CURRENT_DATE

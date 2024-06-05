@@ -62,10 +62,14 @@ if st.button("Iniciar Sesión"):
 if st.session_state['estado'] == 'Autorizado':
     st.write("¡Bienvenido! Ahora puedes acceder a las otras páginas.")
     # Aquí puedes agregar enlaces o botones para navegar a otras páginas
-    if st.button("Ir a AltaConductor"):
-        st.switch_page("pages/3Alta Conductor.py")
-    if st.button("Ir a Viajes"):
-        st.switch_page("pages/4Viajes.py")
+    col1, col2, col3 = st.columns(3)
+
+    with col1:
+        if st.button("Ir a AltaConductor"):
+            st.switch_page("pages/3Alta Conductor.py")
+    with col3:
+        if st.button("Ir a Viajes"):
+            st.switch_page("pages/4Viajes.py")
 else:
     st.warning("Por favor, inicie sesión para acceder a las otras páginas.")
 
