@@ -40,7 +40,7 @@ st.set_page_config(page_title='Austral Pool', page_icon='logoCarPool.jpg', layou
 #Le pido los datos necesarios al usuario para que sea un conductor
 st.title('Alta Conductor')
 st.write('Acá podrás darte de alta como conductor, donde podrás ofrecerle ayuda a compañeros que necesiten ir los mismos días y horarios que vos.')
-dni = st.text_input('DNI')
+dni = st.session_state['user_id']
 plazas = st.text_input('¿Cuántas personas estás dispuestas a llevar en tu auto? Sin contarte a vos.')
 fechaInicio = st.date_input("Fecha donde planeás empezar a ofrecerte como conductor", value=None)
 fechaFin = st.date_input("Fecha donde planeás dejar de ofrecerte como conductor", value=None)

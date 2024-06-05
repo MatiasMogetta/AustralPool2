@@ -160,7 +160,7 @@ if 'selected_index' not in st.session_state:
 if 'viaje_buscado' not in st.session_state:
     st.session_state['viaje_buscado'] = False
 
-idUser = st.text_input('Ingrese su DNI')
+idUser = st.session_state['user_id']
 
 if idUser:
     try:
