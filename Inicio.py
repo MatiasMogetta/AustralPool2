@@ -54,11 +54,15 @@ verdana-text  {
 </div>
 ''', unsafe_allow_html=True)
 
+col1, col2, col3 = st.columns(3)
 
-if st.button("Crear usuario"):
-    st.switch_page("pages/1Registrar Usuario.py")
-if st.button("Iniciar sesión"):
-    st.switch_page("pages/2Iniciar Sesion.py")
+with col1:
+    if st.button("Crear usuario"):
+        st.switch_page("pages/1Registrar Usuario.py")
+
+with col3:
+    if st.button("Iniciar sesión"):
+        st.switch_page("pages/2Iniciar Sesion.py")
 
 #fondo de la app
 page_bg_img = f"""
