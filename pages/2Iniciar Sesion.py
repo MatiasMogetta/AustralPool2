@@ -42,8 +42,6 @@ if 'estado' not in st.session_state:
     st.session_state['estado'] = 'No Autorizado'
     st.session_state['user_id'] = None  # Almacenar el ID del usuario autenticado
 
-st.write(st.session_state['estado'])
-
 st.title("Iniciar Sesión")
 
 email = st.text_input("Correo electrónico")

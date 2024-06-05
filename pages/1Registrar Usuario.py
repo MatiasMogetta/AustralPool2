@@ -53,45 +53,41 @@ st.title('✅ Registrar Usuario')
 email = st.text_input("Email")
 password = st.text_input("Contraseña", type="password") 
 confirm_password = st.text_input("Confirmar contraseña", type="password")
-if confirm_password == password:
-    st.write("Contraseña verificada")
-else:
-    st.write("Verifique su contraseña")
+if confirm_password and password and confirm_password != password:
+   st.error("Verifique su contraseña")
+    
 
-if email and password and confirm_password:
-    st.title('Llenar datos')
-    st.write('Para poder proveerte de la mejor experiencia necesitamos que llenes los siguientes datos por única vez. Es obligatorio para poder registrarte como usuario.')
-    dni = st.text_input("DNI")
-    nombreYApellido = st.text_input("Nombre y Apellido")
-    codigoPostal = st.text_input("Código postal")
-    contactoTelefono = st.text_input("Número de celular")
-    df = pd.DataFrame({'first column': ['F', 'M']})
-    genero = st.selectbox(
-        'Género',
-        df['first column'])
-    fechaDeNacimiento =  st.date_input("Fecha de Nacimiento", max_value=datetime.today())
+st.title('Llenar datos')
+st.write('Para poder proveerte de la mejor experiencia necesitamos que llenes los siguientes datos por única vez. Es obligatorio para poder registrarte como usuario.')
+dni = st.text_input("DNI")
+nombreYApellido = st.text_input("Nombre y Apellido")
+codigoPostal = st.text_input("Código postal")
+contactoTelefono = st.text_input("Número de celular")
+df = pd.DataFrame({'first column': ['F', 'M']})
+genero = st.selectbox(
+    'Género',
+    df['first column'])
+fechaDeNacimiento =  st.date_input("Fecha de Nacimiento", max_value=datetime.today())
 
 #Botón de registrar usuario, acá se chequea que estén todos los datos correspondientes
 #Si están todos los datos, se inserta al usuario en la BBDD, sino se piden los datos
-    if st.button("Registrar Usuario"):
-        if not dni or not nombreYApellido or not codigoPostal or not contactoTelefono or not email or not genero or not fechaDeNacimiento:
-            st.error("Por favor, completa todos los campos.")
-        elif fechaDeNacimiento >= datetime.today().date():
-            st.error("La fecha de nacimiento debe ser anterior a la fecha actual.")
-        elif email_exists(email):
-            st.error("El email ya está registrado. Por favor, utiliza otro email.")
-        else:
-            insert_user(dni, nombreYApellido, codigoPostal, contactoTelefono, email, genero, fechaDeNacimiento, password)
-            progress_text = "Operation in progress. Please wait."
-            my_bar = st.progress(0, text=progress_text)
-
-            for percent_complete in range(100):
-                time.sleep(0.01)
-                my_bar.progress(percent_complete + 1, text=progress_text)
-            time.sleep(1)
-            my_bar.empty()
-
-            st.switch_page("pages/2Iniciar Sesion.py")
+if st.button("Registrar Usuario"):
+    if not dni or not nombreYApellido or not codigoPostal or not contactoTelefono or not email or not genero or not fechaDeNacimiento:
+        st.error("Por favor, completa todos los campos.")
+    elif fechaDeNacimiento >= datetime.today().date():
+        st.error("La fecha de nacimiento debe ser anterior a la fecha actual.")
+    elif email_exists(email):
+        st.error("El email ya está registrado. Por favor, utiliza otro email.")
+    else:
+        insert_user(dni, nombreYApellido, codigoPostal, contactoTelefono, email, genero, fechaDeNacimiento, password)
+        progress_text = "Operation in progress. Please wait."
+        my_bar = st.progress(0, text=progress_text)
+        for percent_complete in range(100):
+            time.sleep(0.01)
+            my_bar.progress(percent_complete + 1, text=progress_text)
+        time.sleep(1)
+        my_bar.empty()
+        st.switch_page("pages/2Iniciar Sesion.py")
 
 
 #fondo de la app
