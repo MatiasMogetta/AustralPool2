@@ -2,6 +2,7 @@ import streamlit as st
 import numpy as np
 import pandas as pd
 import psycopg2
+from PIL import Image
 
 def get_db_connection():
     user='postgres.qaqarqxmcujaagjnhysc'
@@ -18,25 +19,42 @@ def get_db_connection():
     )
     return conn
 
-st.set_page_config(page_title='Austral Pool', page_icon='logoCarPool.jpg', layout="centered", initial_sidebar_state="auto", menu_items=None)
+st.set_page_config(page_title='Austral Pool', page_icon='Imagenderecha.jpg', layout="centered", initial_sidebar_state="auto", menu_items=None)
 
 st.title('PoolAustral')
-st.image('logoCarPool.jpg')
-st.text('''DESCRIPCIÓN DE LA APLICACIÓN:
-Bienvenido a la aplicación de Carpool para la Universidad Austral. Esta plataforma 
-está diseñada para facilitar el transporte compartido entre los alumnos 
-de nuestra universidad. Para comenzar, debes registrarte como 
-usuario utilizando tu correo electrónico de mail.austral.edu.ar y 
-completar con tus datos personales.
 
-Nuestra aplicación te permite conectarte con otros estudiantes para coordinar viajes 
-hacia y desde la universidad. Puedes registrarte como conductor si tienes un 
-vehículo y deseas ofrecer un viaje, o como pasajero si buscas unirte a un viaje 
-existente. La aplicación funciona utilizando el código postal para asegurar 
-que las conexiones sean convenientes y seguras.
+# Cargar la imagen
+image = Image.open('Imagenderecha.jpg')
 
-¡Únete a la comunidad de carpool de la Universidad Austral y contribuye a un 
-transporte más ecológico y económico!''')
+# Mostrar la imagen con un ancho específico
+st.image(image, width=800)  # Ajusta el valor de 300 a lo que mejor se adapte a tus necesidades
+
+st.markdown('''
+<style>
+verdana-text  {
+    font-family: "Verdana";
+    font-size: 20px;
+}
+</style>
+<div class="verdana-text">
+    <p>DESCRIPCIÓN DE LA APLICACIÓN:<br>
+    Bienvenido a la aplicación de Carpool para la Universidad Austral. Esta plataforma está diseñada para facilitar 
+    el transporte compartido entre los alumnos de nuestra universidad. Para comenzar, debes registrarte como 
+    usuario utilizando tu correo electrónico de mail.austral.edu.ar y 
+    completar con tus datos personales.<br></p>
+<div class="verdana-text">
+    <p>Nuestra aplicación te permite conectarte con otros estudiantes para coordinar viajes 
+    hacia y desde la universidad. Puedes registrarte como conductor si tienes un 
+    vehículo y deseas ofrecer un viaje, o como pasajero si buscas unirte a un viaje 
+    existente. La aplicación funciona utilizando el código postal para asegurar 
+    que las conexiones sean convenientes y seguras.<br></p>
+<div class="verdana-text">
+    <p>¡Únete a la comunidad de carpool de la Universidad Austral y contribuye a un 
+    transporte más ecológico y económico!</p>
+</div>
+''', unsafe_allow_html=True)
+
+
 if st.button("Crear usuario"):
     st.switch_page("pages/1Registrar Usuario.py")
 if st.button("Iniciar sesión"):
