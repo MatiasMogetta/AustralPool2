@@ -51,8 +51,8 @@ st.set_page_config(page_title='Austral Pool', page_icon='logoCarPool.jpg', layou
 st.title('✅ Registrar Usuario')
 
 email = st.text_input("Email")
-password = st.text_input("Contraseña") 
-confirm_password = st.text_input("Confirmar contraseña")
+password = st.text_input("Contraseña", type="password") 
+confirm_password = st.text_input("Confirmar contraseña", type="password")
 if confirm_password == password:
     st.write("Contraseña verificada")
 else:
