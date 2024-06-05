@@ -19,7 +19,7 @@ def get_db_connection():
     )
     return conn
 
-st.set_page_config(page_title='Austral Pool', page_icon='Imagenderecha.jpg', layout="centered", initial_sidebar_state="auto", menu_items=None)
+st.set_page_config(page_title='Austral Pool', page_icon='logoCarPool.jpg', layout="centered", initial_sidebar_state="auto", menu_items=None)
 
 st.title('PoolAustral')
 
