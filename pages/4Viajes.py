@@ -5,6 +5,42 @@ from datetime import datetime
 
 if 'estado' not in st.session_state or st.session_state['estado'] != 'Autorizado':
     st.warning("No autorizado. Por favor, inicie sesión.")
+        #Boton que lo lleve a iniciar sesion
+    col1, col2, col3 = st.columns(3)
+
+    with col1:
+    # CSS para cambiar el color de los botones
+        st.markdown("""
+            <style>
+            div.stButton > button:first-child {
+                background-color: white;  # Color blanco para el primer botón
+                color: black;
+            }
+            div.stButton > button:nth-child(2) {
+                background-color: #4CAF50;  # Color verde para el segundo botón
+                color: white;
+            }
+            </style>""", unsafe_allow_html=True)
+    with col2:
+        if st.button("Iniciar sesión"):
+            st.switch_page("pages/2Iniciar Sesion.py")
+    #fondo de la app
+    page_bg_img = f"""
+    <style>
+    [data-testid="stAppViewContainer"] > .main {{
+    background-image: url("https://i.postimg.cc/4xgNnkfX/Untitled-design.png");
+    background-size: cover;
+    background-position: center center;
+    background-repeat: no-repeat;
+    background-attachment: local;
+    }}
+    [data-testid="stHeader"] {{
+    background: rgba(0,0,0,0);
+    }}
+    </style>
+    """
+    st.markdown(page_bg_img, unsafe_allow_html=True)
+    
     st.stop()
 
 def get_db_connection():
