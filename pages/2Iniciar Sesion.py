@@ -42,34 +42,57 @@ if 'estado' not in st.session_state:
     st.session_state['estado'] = 'No Autorizado'
     st.session_state['user_id'] = None  # Almacenar el ID del usuario autenticado
 
-st.title("Iniciar Sesión")
 
-email = st.text_input("Correo electrónico")
-password = st.text_input("Contraseña", type="password")
+#Solo si el usuario no se logueó, mostrar los textos para que inicie sesión
+if st.session_state['estado'] == 'No Autorizado':
+    st.title("Iniciar Sesión")
 
-if st.button("Iniciar Sesión"):
-    user_id = authenticate_user(email, password)
-    if user_id:
-        st.success("Inicio de sesión exitoso")
-        st.session_state['estado'] = 'Autorizado'
-        st.session_state['user_id'] = user_id  # Almacenar el ID del usuario autenticado
-    else:
-        st.error("Correo electrónico o contraseña incorrectos")
+    email = st.text_input("Correo electrónico")
+    password = st.text_input("Contraseña", type="password")
+
+    if st.button("Iniciar Sesión"):
+        user_id = authenticate_user(email, password)
+        if user_id:
+            st.session_state['estado'] = 'Autorizado'
+            st.session_state['user_id'] = user_id  # Almacenar el ID del usuario autenticado
+            st.experimental_rerun()  # Rerun the script to reflect the updated session state
+        else:
+            st.error("Correo electrónico o contraseña incorrectos")
 
 # Mostrar contenido solo si el usuario está autorizado
 if st.session_state['estado'] == 'Autorizado':
+    st.success("Inicio de sesión exitoso")
     st.write("¡Bienvenido! Ahora puedes acceder a las otras páginas.")
     # Aquí puedes agregar enlaces o botones para navegar a otras páginas
     col1, col2, col3 = st.columns(3)
 
-    with col1:
+    with col3:
         if st.button("Ir a AltaConductor"):
             st.switch_page("pages/3Alta Conductor.py")
-    with col3:
+    with col1:
         if st.button("Ir a Viajes"):
             st.switch_page("pages/4Viajes.py")
 else:
-    st.warning("Por favor, inicie sesión para acceder a las otras páginas.")
+    st.warning('Por favor, inicie sesión para acceder a las otras páginas. Si no tiene usuario puede crearlo a usando el botón "Crear Usuario" ')
+    col1, col2, col3 = st.columns(3)
+
+    with col2:
+        # CSS para cambiar el color de los botones
+        st.markdown("""
+            <style>
+            div.stButton > button:first-child {
+                background-color: white;  # Color blanco para el primer botón
+                color: black;
+            }
+            div.stButton > button:nth-child(2) {
+                background-color: #4CAF50;  # Color verde para el segundo botón
+                color: white;
+            }
+            </style>""", unsafe_allow_html=True)
+
+        if st.button("Crear usuario"):
+            st.switch_page("pages/1Registrar Usuario.py")
+
 
 #fondo de la app
 page_bg_img = f"""

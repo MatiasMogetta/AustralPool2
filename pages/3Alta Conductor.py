@@ -67,8 +67,10 @@ def insert_conductor(dni, plazas, fechaInicio, fechaFin, horarioIdaLunes, horari
             query = "INSERT INTO Australpool.Conductor (iduser, plazas, fecha_inicio, fecha_fin, lunes_ida, lunes_vuelta, martes_ida, martes_vuelta, miercoles_ida, miercoles_vuelta, jueves_ida, jueves_vuelta, viernes_ida, viernes_vuelta) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"
             cur.execute(query, (dni, plazas, fechaInicio, fechaFin, horarioIdaLunes, horarioVueltaLunes, horarioIdaMartes, horarioVueltaMartes, horarioIdaMiércoles, horarioVueltaMiércoles, horarioIdaJueves, horarioVueltaJueves, horarioIdaViernes, horarioVueltaViernes))
             conn.commit()
+        return True
     except psycopg2.Error as e:
         st.error(f"Se produjo un error al guardar el usuario: {e}")
+        return False
     finally:
         conn.close()
 
@@ -78,58 +80,87 @@ st.set_page_config(page_title='Austral Pool', page_icon='logoCarPool.jpg', layou
 st.title('Alta Conductor')
 st.write('Acá podrás darte de alta como conductor, donde podrás ofrecerle ayuda a compañeros que necesiten ir los mismos días y horarios que vos.')
 dni = st.session_state['user_id']
-plazas = st.text_input('¿Cuántas personas estás dispuestas a llevar en tu auto? Sin contarte a vos.')
+plazas = st.number_input('¿Cuántas personas estás dispuestas a llevar en tu auto? Sin contarte a vos.', min_value=0, format='%d')
 fechaInicio = st.date_input("Fecha donde planeás empezar a ofrecerte como conductor", value=None)
 fechaFin = st.date_input("Fecha donde planeás dejar de ofrecerte como conductor", value=None)
 
-#Se podría hacer con un for usando una lista con los días. El problema serían los nombres de las variables. SOLUCIONAR
-st.write('Seleccione los días en los que va a la facultad y los horarios: Mañana (M), Tarde (T), Noche (N)')
-df = pd.DataFrame({'first column': ['M', 'T', 'N']})
-if st.checkbox('Lunes'):
-    horarioIdaLunes = st.selectbox('Horario ida lunes', df['first column'])
-    horarioVueltaLunes = st.selectbox('Horario vuelta lunes', df['first column'])
-else:
-    horarioIdaLunes = None
-    horarioVueltaLunes = None
+# Variable para controlar la validez de las fechas
+fechas_validas = True
 
-if st.checkbox('Martes'):
-    horarioIdaMartes = st.selectbox('Horario ida martes', df['first column'])
-    horarioVueltaMartes = st.selectbox('Horario vuelta martes', df['first column'])
-else:
-    horarioIdaMartes = None
-    horarioVueltaMartes = None
+if fechaInicio and fechaFin:  # Asegurarse de que ambas fechas están seleccionadas
+    if fechaInicio >= fechaFin:
+        st.error('La fecha de inicio debe ser anterior a la fecha de fin. Por favor, selecciona las fechas correctamente.')
+        fechas_validas = False  # Marcar las fechas como inválidas
 
-if st.checkbox('Miércoles'):
-    horarioIdaMiércoles = st.selectbox('Horario ida Miércoles', df['first column'])
-    horarioVueltaMiércoles = st.selectbox('Horario vuelta Miércoles', df['first column'])
-else:
-    horarioIdaMiércoles = None
-    horarioVueltaMiércoles = None
+# Mapeo de las palabras completas a sus abreviaturas
+horarios_map = {
+    'Mañana': 'M',
+    'Tarde': 'T',
+    'Noche': 'N'
+}
 
-if st.checkbox('Jueves'):
-    horarioIdaJueves = st.selectbox('Horario ida Jueves', df['first column'])
-    horarioVueltaJueves = st.selectbox('Horario vuelta Jueves', df['first column'])
-else:
-    horarioIdaJueves = None
-    horarioVueltaJueves = None
+# Inicializar todas las variables de horario como None antes de las condiciones
+horarioIdaLunes = None
+horarioVueltaLunes = None
+horarioIdaMartes = None
+horarioVueltaMartes = None
+horarioIdaMiércoles = None
+horarioVueltaMiércoles = None
+horarioIdaJueves = None
+horarioVueltaJueves = None
+horarioIdaViernes = None
+horarioVueltaViernes = None
 
-if st.checkbox('Viernes'):
-    horarioIdaViernes = st.selectbox('Horario ida Viernes', df['first column'])
-    horarioVueltaViernes = st.selectbox('Horario vuelta Viernes', df['first column'])
-else:
-    horarioIdaViernes = None
-    horarioVueltaViernes = None
+# Mostrar el botón de dar de alta solo si las fechas son válidas
+if fechas_validas:
+    st.write('Seleccione los días en los que va a la facultad y los horarios: Mañana , Tarde o Noche.')
+    df = pd.DataFrame({'first column': list(horarios_map.keys())})  # Usar las palabras completas para la selección
 
-if st.button("Dar de alta"):
-    insert_conductor(dni, plazas, fechaInicio, fechaFin, horarioIdaLunes, horarioVueltaLunes, horarioIdaMartes, horarioVueltaMartes, horarioIdaMiércoles, horarioVueltaMiércoles, horarioIdaJueves, horarioVueltaJueves, horarioIdaViernes, horarioVueltaViernes)
-    progress_text = "Operation in progress. Please wait."
-    my_bar = st.progress(0, text=progress_text)
+    if st.checkbox('Lunes'):
+        horarioIdaLunes = st.selectbox('Horario ida lunes', df['first column'])
+        horarioVueltaLunes = st.selectbox('Horario vuelta lunes', df['first column'])
+        horarioIdaLunes = horarios_map.get(horarioIdaLunes)
+        horarioVueltaLunes = horarios_map.get(horarioVueltaLunes)
 
-    for percent_complete in range(100):
-        time.sleep(0.01)
-        my_bar.progress(percent_complete + 1, text=progress_text)
-    time.sleep(1)
-    my_bar.empty()
+    if st.checkbox('Martes'):
+        horarioIdaMartes = st.selectbox('Horario ida martes', df['first column'])
+        horarioVueltaMartes = st.selectbox('Horario vuelta martes', df['first column'])
+        horarioIdaMartes = horarios_map.get(horarioIdaMartes)
+        horarioVueltaMartes = horarios_map.get(horarioVueltaMartes)
+
+    if st.checkbox('Miércoles'):
+        horarioIdaMiércoles = st.selectbox('Horario ida Miércoles', df['first column'])
+        horarioVueltaMiércoles = st.selectbox('Horario vuelta Miércoles', df['first column'])
+        horarioIdaMiércoles = horarios_map.get(horarioIdaMiércoles)
+        horarioVueltaMiércoles = horarios_map.get(horarioVueltaMiércoles)
+
+    if st.checkbox('Jueves'):
+        horarioIdaJueves = st.selectbox('Horario ida Jueves', df['first column'])
+        horarioVueltaJueves = st.selectbox('Horario vuelta Jueves', df['first column'])
+        horarioIdaJueves = horarios_map.get(horarioIdaJueves)
+        horarioVueltaJueves = horarios_map.get(horarioVueltaJueves)
+
+    if st.checkbox('Viernes'):
+        horarioIdaViernes = st.selectbox('Horario ida Viernes', df['first column'])
+        horarioVueltaViernes = st.selectbox('Horario vuelta Viernes', df['first column'])
+        horarioIdaViernes = horarios_map.get(horarioIdaViernes)
+        horarioVueltaViernes = horarios_map.get(horarioVueltaViernes)
+
+    if st.button("Dar de alta"):
+        success = insert_conductor(dni, plazas, fechaInicio, fechaFin, horarioIdaLunes, horarioVueltaLunes, horarioIdaMartes, horarioVueltaMartes, horarioIdaMiércoles, horarioVueltaMiércoles, horarioIdaJueves, horarioVueltaJueves, horarioIdaViernes, horarioVueltaViernes)
+        progress_text = "Operation in progress. Please wait."
+        my_bar = st.progress(0, text=progress_text)
+        for percent_complete in range(100):
+            time.sleep(0.01)
+            my_bar.progress(percent_complete + 1, text=progress_text)
+        time.sleep(1)
+        my_bar.empty()
+        
+        if success:
+            st.success("Te has dado de alta como conductor exitosamente.")
+        
+
+        
 
 #fondo de la app
 page_bg_img = f"""
