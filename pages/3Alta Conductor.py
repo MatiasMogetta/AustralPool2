@@ -158,8 +158,12 @@ if fechas_validas:
         
         if success:
             st.success("Te has dado de alta como conductor exitosamente.")
+            st.markdown("""
+            <span style='font-size: 20px; font-weight: bold; color: Black;'>
+            Ahora puedes ver tus viajes programados en la página de Viajes.
+            </span>
+            """, unsafe_allow_html=True)
         
-
         
 
 #fondo de la app

@@ -77,8 +77,9 @@ def buscar_viaje(codigoPostal, dia_semana, horario, sentido, fechaDeViaje):
             WHERE u.codigo_postal = %s 
               AND c.{dia_column} = %s
               AND %s BETWEEN c.fecha_inicio AND c.fecha_fin
+              AND %s BETWEEN c.fecha_inicio AND c.fecha_fin
             """
-            cur.execute(query, (codigoPostal, horario, fechaDeViaje))
+            cur.execute(query, (codigoPostal, horario, fechaDeViaje, fechaDeViaje))
             results = cur.fetchall()
             columns = [desc[0] for desc in cur.description]
             df = pd.DataFrame(results, columns=columns)
@@ -117,6 +118,8 @@ def reservar_viaje(idConductor, idPasajero, fechaViaje, sentido, dia_semana):
                 """
                 cur.execute(query_insert, (int(idConductor), int(idPasajero), fechaViaje, sentido, diaMayuscula(dia_semana)))
                 conn.commit()
+                st.success("Reserva realizada con éxito.")
+                st.experimental_rerun()  # Rerun the page to reflect the changes
                 return True
             else:
                 st.warning(f"No hay plazas disponibles para este viaje. Plazas disponibles: {plazas_disponibles}, Plazas ocupadas: {plazas_ocupadas}")
@@ -169,11 +172,53 @@ def cargar_viajes_pasados(idUser):
     finally:
         conn.close()
 
+#Viajes como conductor
+def cargar_datos_conductor(idUser):
+    conn = get_db_connection()
+    try:
+        with conn.cursor() as cur:
+            query = """
+            SELECT plazas, fecha_inicio, fecha_fin, 
+                   lunes_ida, lunes_vuelta, 
+                   martes_ida, martes_vuelta, 
+                   miercoles_ida, miercoles_vuelta, 
+                   jueves_ida, jueves_vuelta, 
+                   viernes_ida, viernes_vuelta
+            FROM AustralPool.Conductor
+            WHERE idUser = %s AND fecha_fin > CURRENT_DATE
+            """
+            cur.execute(query, (int(idUser),))
+            results = cur.fetchall()
+            columns = [desc[0] for desc in cur.description]
+            df = pd.DataFrame(results, columns=columns)
+            return df
+    except psycopg2.Error as e:
+        st.error(f"Se produjo un error al cargar los datos del conductor: {e}")
+        return pd.DataFrame()
+    finally:
+        conn.close()
+
 def diaMayuscula(dia):
     if dia == 'miercoles':
         return 'X'
     else:
         return dia[0].upper()
+
+def obtener_codigo_postal_usuario(id_usuario):
+    conn = get_db_connection()
+    try:
+        with conn.cursor() as cur:
+            query = """
+            SELECT codigo_postal FROM AustralPool.Usuarios WHERE iduser = %s
+            """
+            cur.execute(query, (id_usuario,))
+            result = cur.fetchone()
+            return result[0] if result else ''
+    except psycopg2.Error as e:
+        st.error(f"Se produjo un error al obtener el código postal: {e}")
+        return ''
+    finally:
+        conn.close()
 
 st.set_page_config(page_title='Austral Pool', page_icon='logoCarPool.jpg', layout="centered", initial_sidebar_state="auto", menu_items=None)
 
@@ -208,23 +253,35 @@ if idUser:
 if st.session_state['idUser']:
     st.title('Mis viajes')
 
-    df_mis_viajes = cargar_viajes_futuros(st.session_state['idUser'])
-    df_historial = cargar_viajes_pasados(st.session_state['idUser'])
-
-    # Utilizando tabs para mostrar los viajes futuros y pasados
-    tabs = st.tabs(["Mis viajes", "Historial"])
+    # Utilizando tabs para mostrar los viajes de conductor, futuros y pasados
+    tabs = st.tabs(["Como pasajero", "Como Conductor", "Historial"])
     
     with tabs[0]:
-        st.write("Mis viajes futuros")
+        st.write("Mis viajes como pasajero")
+        df_mis_viajes = cargar_viajes_futuros(st.session_state['idUser'])
+        df_mis_viajes.fillna('-', inplace=True)  # Reemplazar None por guión
         st.dataframe(df_mis_viajes, hide_index=True)
 
     with tabs[1]:
+        st.write("Viajes como Conductor")
+        df_viajes_conductor = cargar_datos_conductor(st.session_state['idUser'])
+        df_viajes_conductor.fillna('-', inplace=True)  # Reemplazar None por guión
+        st.dataframe(df_viajes_conductor, hide_index=True)
+
+    with tabs[2]:
         st.write("Historial de viajes")
+        df_historial = cargar_viajes_pasados(st.session_state['idUser'])
+        df_historial.fillna('-', inplace=True)  # Reemplazar None por guión
         st.dataframe(df_historial, hide_index=True)
 
     st.title('Buscar viajes')
 
-    codigoPostal = st.text_input('Escriba su número postal')
+    idUser = st.session_state.get('idUser')
+    if idUser:
+        codigoPostal = obtener_codigo_postal_usuario(idUser)
+    else:
+        codigoPostal = ''
+
     fechaDeViaje = st.date_input("¿Qué día necesitás transporte para la universidad?", value=None)
 
     opcionesDireccion = pd.DataFrame({'first column': ['I', 'V']})
@@ -250,7 +307,9 @@ if st.session_state['idUser']:
         dia_semana = dias_semana_es[fechaDeViaje.weekday()]  # Obtener el nombre del día en español
         df_resultados = buscar_viaje(codigoPostal, dia_semana, horario, idaOVuelta, fechaDeViaje)
         
-        if not df_resultados.empty:
+        if df_resultados.empty:
+            st.warning("No se encontraron viajes disponibles para los criterios seleccionados.")
+        else:
             st.session_state['viaje_buscado'] = True
             st.session_state['df_resultados'] = df_resultados
             st.session_state['dia_semana'] = dia_semana
@@ -264,7 +323,7 @@ if st.session_state['idUser']:
         idaOVuelta = st.session_state['idaOVuelta']
 
         st.write("Selecciona el viaje que deseas reservar:")
-        selected_index = st.selectbox("Viajes disponibles:", range(len(df_resultados)), format_func=lambda x: f"ID Conductor: {df_resultados.iloc[x]['iduser']}, Nombre: {df_resultados.iloc[x]['nombre_apellido']}, Plazas: {df_resultados.iloc[x]['plazas']}")
+        selected_index = st.selectbox("Viajes disponibles:", range(len(df_resultados)), format_func=lambda x: f"Nombre: {df_resultados.iloc[x]['nombre_apellido']}, Teléfono: {df_resultados.iloc[x]['telefono_celular']}, Plazas: {df_resultados.iloc[x]['plazas']}")
         st.session_state['selected_index'] = selected_index
         selected_row = df_resultados.iloc[selected_index]
 
