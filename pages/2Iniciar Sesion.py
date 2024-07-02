@@ -2,11 +2,11 @@ import streamlit as st
 import psycopg2
 
 def get_db_connection():
-    user = 'postgres.qaqarqxmcujaagjnhysc'
-    password = 'AustralCarPool.'
-    host = 'aws-0-sa-east-1.pooler.supabase.com'
-    port = '5432'
-    dbname = 'postgres'
+    user='postgres.qaqarqxmcujaagjnhysc'
+    password='AustralCarPool.'
+    host='aws-0-sa-east-1.pooler.supabase.com'
+    port='6543'
+    dbname='postgres'
     conn = psycopg2.connect(
         dbname=dbname,
         user=user,

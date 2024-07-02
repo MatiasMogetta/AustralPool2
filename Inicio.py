@@ -6,9 +6,9 @@ from PIL import Image
 
 def get_db_connection():
     user='postgres.qaqarqxmcujaagjnhysc'
-    password='AustralCarPool.' 
+    password='AustralCarPool.'
     host='aws-0-sa-east-1.pooler.supabase.com'
-    port='5432' 
+    port='6543'
     dbname='postgres'
     conn = psycopg2.connect(
         dbname=dbname,
