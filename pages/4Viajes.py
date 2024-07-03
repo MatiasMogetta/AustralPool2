@@ -2,6 +2,8 @@ import streamlit as st
 import pandas as pd
 import psycopg2
 from datetime import datetime
+import folium
+from streamlit_folium import st_folium
 
 if 'estado' not in st.session_state or st.session_state['estado'] != 'Autorizado':
     st.warning("No autorizado. Por favor, inicie sesión.")
@@ -71,13 +73,14 @@ def buscar_viaje(codigoPostal, dia_semana, horario, sentido, fechaDeViaje):
                 dia_column = dia_column_vuelta
             
             query = f"""
-            SELECT u.iduser, u.codigo_postal, u.nombre_apellido, u.telefono_celular, u.email, c.plazas
+            SELECT u.iduser, u.codigo_postal, u.nombre_apellido, u.telefono_celular, u.email, c.plazas, u.latitud, u.longitud
             FROM AustralPool.Usuarios u
             JOIN AustralPool.Conductor c ON u.iduser = c.iduser
             WHERE u.codigo_postal = %s 
               AND c.{dia_column} = %s
               AND %s BETWEEN c.fecha_inicio AND c.fecha_fin
               AND %s BETWEEN c.fecha_inicio AND c.fecha_fin
+              AND c.fecha_fin >= CURRENT_DATE  -- Filtrar viajes cuya fecha de fin no ha pasado
             """
             cur.execute(query, (codigoPostal, horario, fechaDeViaje, fechaDeViaje))
             results = cur.fetchall()
@@ -281,6 +284,7 @@ if st.session_state['idUser']:
         st.write("Mis viajes como pasajero")
         df_mis_viajes = cargar_viajes_futuros(st.session_state['idUser'])
         df_mis_viajes.fillna('-', inplace=True)  # Reemplazar None por guión
+        df_mis_viajes = df_mis_viajes.drop(columns=['dni'])  # Eliminar la columna dni
         st.dataframe(df_mis_viajes, hide_index=True)
 
     with tabs[1]:
@@ -294,7 +298,7 @@ if st.session_state['idUser']:
         SELECT p.nombre_apellido AS Pasajero, v.fechaViaje AS "Fecha Viaje", v.sentido AS Sentido
         FROM AustralPool.Viajes v
         JOIN AustralPool.Usuarios p ON v.idPasajero = p.idUser
-        WHERE v.idConductor = %s
+        WHERE v.idConductor = %s AND v.fechaViaje >= CURRENT_DATE
         """
         conn = get_db_connection()
         try:
@@ -347,17 +351,25 @@ if st.session_state['idUser']:
     }
 
     if st.button("Buscar viaje"):
-        dia_semana = dias_semana_es[fechaDeViaje.weekday()]  # Obtener el nombre del día en español
-        df_resultados = buscar_viaje(codigoPostal, dia_semana, horario, idaOVuelta, fechaDeViaje)
-        
-        if df_resultados.empty:
-            st.warning("No se encontraron viajes disponibles para los criterios seleccionados.")
+        if not fechaDeViaje:
+            st.warning("Por favor, seleccione una fecha antes de buscar viajes.")
         else:
-            st.session_state['viaje_buscado'] = True
-            st.session_state['df_resultados'] = df_resultados
-            st.session_state['dia_semana'] = dia_semana
-            st.session_state['fechaDeViaje'] = fechaDeViaje
-            st.session_state['idaOVuelta'] = idaOVuelta
+            # Limpiar resultados de búsquedas anteriores
+            st.session_state['viaje_buscado'] = False
+            st.session_state['df_resultados'] = pd.DataFrame()
+            st.session_state['selected_index'] = None
+
+            dia_semana = dias_semana_es[fechaDeViaje.weekday()]  # Obtener el nombre del día en español
+            df_resultados = buscar_viaje(codigoPostal, dia_semana, horario, idaOVuelta, fechaDeViaje)
+            
+            if df_resultados.empty:
+                st.warning("No se encontraron viajes disponibles para los criterios seleccionados.")
+            else:
+                st.session_state['viaje_buscado'] = True
+                st.session_state['df_resultados'] = df_resultados
+                st.session_state['dia_semana'] = dia_semana
+                st.session_state['fechaDeViaje'] = fechaDeViaje
+                st.session_state['idaOVuelta'] = idaOVuelta
 
     if st.session_state['viaje_buscado']:
         df_resultados = st.session_state['df_resultados']
@@ -377,6 +389,22 @@ if st.session_state['idUser']:
                 st.success("Reserva realizada con éxito.")
             else:
                 st.error("Error en la reserva.")
+
+        # Crear y mostrar el mapa solo con el conductor seleccionado
+        st.write("Mapa del conductor seleccionado:")
+        if pd.notna(selected_row['latitud']) and pd.notna(selected_row['longitud']):
+            map_center = [selected_row['latitud'], selected_row['longitud']]
+            m = folium.Map(location=map_center, zoom_start=12)
+
+            folium.Marker(
+                location=[selected_row['latitud'], selected_row['longitud']],
+                popup=f"{selected_row['nombre_apellido']} - {selected_row['telefono_celular']}",
+                icon=folium.Icon(color="blue", icon="info-sign")
+            ).add_to(m)
+
+            st_folium(m, width=700, height=500)
+        else:
+            st.write("¡Ups! Parece que el conductor seleccionado no tiene coordenadas guardadas.")
 
 # Fondo de la app
 page_bg_img = f"""
