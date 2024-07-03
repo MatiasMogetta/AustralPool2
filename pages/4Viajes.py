@@ -252,6 +252,27 @@ if idUser:
 
 if st.session_state['idUser']:
     st.title('Mis viajes')
+    
+    # Obtener y mostrar el nombre del usuario
+    conn = get_db_connection()
+    try:
+        with conn.cursor() as cur:
+            query = "SELECT nombre_apellido FROM AustralPool.Usuarios WHERE iduser = %s"
+            cur.execute(query, (st.session_state['idUser'],))
+            result = cur.fetchone()
+            if result:
+                nombre_usuario = result[0]
+                query_sexo = "SELECT genero FROM AustralPool.Usuarios WHERE iduser = %s"
+                cur.execute(query_sexo, (st.session_state['idUser'],))
+                sexo_result = cur.fetchone()
+                if sexo_result and sexo_result[0].lower() == 'f':
+                    st.write(f"Bienvenida, {nombre_usuario}")
+                else:
+                    st.write(f"Bienvenido, {nombre_usuario}")
+    except psycopg2.Error as e:
+        st.error(f"Se produjo un error al obtener el nombre del usuario: {e}")
+    finally:
+        conn.close()
 
     # Utilizando tabs para mostrar los viajes de conductor, futuros y pasados
     tabs = st.tabs(["Como pasajero", "Como Conductor", "Historial"])
@@ -267,6 +288,28 @@ if st.session_state['idUser']:
         df_viajes_conductor = cargar_datos_conductor(st.session_state['idUser'])
         df_viajes_conductor.fillna('-', inplace=True)  # Reemplazar None por guión
         st.dataframe(df_viajes_conductor, hide_index=True)
+
+        st.write("Pasajeros confirmados")
+        query_pasajeros = """
+        SELECT p.nombre_apellido AS Pasajero, v.fechaViaje AS "Fecha Viaje", v.sentido AS Sentido
+        FROM AustralPool.Viajes v
+        JOIN AustralPool.Usuarios p ON v.idPasajero = p.idUser
+        WHERE v.idConductor = %s
+        """
+        conn = get_db_connection()
+        try:
+            with conn.cursor() as cur:
+                cur.execute(query_pasajeros, (st.session_state['idUser'],))
+                results = cur.fetchall()
+                columns = [desc[0] for desc in cur.description]
+                df_viajes = pd.DataFrame(results, columns=columns)
+                df_viajes.fillna('-', inplace=True)  # Reemplazar None por guión
+                st.dataframe(df_viajes, hide_index=True)
+        except psycopg2.Error as e:
+            st.error(f"Se produjo un error al cargar los pasajeros confirmados: {e}")
+        finally:
+            conn.close()
+            
 
     with tabs[2]:
         st.write("Historial de viajes")
