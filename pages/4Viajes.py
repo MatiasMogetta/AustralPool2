@@ -44,11 +44,11 @@ if 'estado' not in st.session_state or st.session_state['estado'] != 'Autorizado
     st.stop()
 
 def get_db_connection():
-    user = 'postgres.qaqarqxmcujaagjnhysc'
-    password = 'AustralCarPool.'
-    host = 'aws-0-sa-east-1.pooler.supabase.com'
-    port = '5432'
-    dbname = 'postgres'
+    user='postgres.qaqarqxmcujaagjnhysc'
+    password='AustralCarPool.'
+    host='aws-0-sa-east-1.pooler.supabase.com'
+    port='6543'
+    dbname='postgres'
     conn = psycopg2.connect(
         dbname=dbname,
         user=user,
